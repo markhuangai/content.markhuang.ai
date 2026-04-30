@@ -251,6 +251,20 @@
       "readTime": "8 min read",
       "featured": false,
       "excludeFromFeatured": false
+    },
+    {
+      "slug": "three-cobblers-one-zhuge-liang-ai-architecture",
+      "title": "Three Cobblers, One Zhuge Liang: Making Cheaper Models Work Together",
+      "description": "A personal AI architecture lesson from the Chinese saying 三个臭皮匠，顶个诸葛亮: why cheaper models fail on giant prompt blobs, and how focused specialist sessions, orchestration, synthesis, and temperature control can make them useful.",
+      "date": "2026-04-30",
+      "category": "ai-llms",
+      "categoryLabel": "AI & LLMs",
+      "tags": ["ai-architecture", "weak-models", "multi-ai", "prompt-engineering", "llm-costs", "orchestration"],
+      "published": true,
+      "image": "https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/hero.webp",
+      "readTime": "5 min read",
+      "featured": false,
+      "excludeFromFeatured": false
     }
   ]
 }

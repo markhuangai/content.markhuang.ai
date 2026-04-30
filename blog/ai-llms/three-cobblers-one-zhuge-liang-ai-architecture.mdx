@@ -1,0 +1,81 @@
+![An ancient strategist silhouette looking over three focused AI workstations connected by soft threads of light](https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/hero.webp)
+
+There is an old Chinese saying I keep coming back to when I think about AI architecture:
+
+> 三个臭皮匠，顶个诸葛亮
+
+Literally, it means "three humble cobblers can match one Zhuge Liang." Zhuge Liang was the legendary strategist from the Three Kingdoms era, the kind of figure people use as shorthand for impossible intelligence. The saying is not really about cobblers. It is about pooled perspective. Three ordinary people, if coordinated well, can compete with one genius.
+
+That sentence started feeling very practical to me once token bills became part of the architecture discussion.
+
+For a while, the default answer to any difficult AI workflow was simple: use the strongest model you can afford. Run Sonnet. Run Opus. Run the best GPT model available. If the output misses something, add more instructions. Eventually the prompt becomes a giant blob: requirements, examples, edge cases, logs, constraints, and "please be careful" all crushed into one request.
+
+It feels reasonable. It is also where cheaper models start to fall apart.
+
+## The giant prompt trap
+
+![A small model node being overwhelmed by a single massive glowing prompt blob full of tangled requirements](https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/prompt-blob.webp)
+
+Smaller models like Haiku-class systems are useful. They are fast, cheap enough to call repeatedly, and good at narrow tasks. But they are not compressed Opus.
+
+Compared with Sonnet, a smaller model is more likely to miss the second or third constraint in a long prompt. It may follow the main instruction while forgetting the exception. Compared with Opus, the gap gets sharper: long-horizon planning, conflict resolution, and self-checking are weaker. When it makes a plausible mistake, it often polishes the mistake instead of catching it.
+
+This is expected. The mistake is not that Haiku misses things. The mistake is designing the workflow as if it should not.
+
+## The first improvement: separate the job from the rules
+
+The first fix I learned was embarrassingly simple: stop stuffing everything into the user prompt.
+
+A clear system prompt changes the shape of the task. The system prompt defines the role, priorities, constraints, output contract, and evaluation lens. The user prompt carries the payload. That separation matters because the model no longer has to infer which parts are permanent rules and which parts are one-time data.
+
+For weaker models, that difference is large. A focused system prompt acts like a rail. It tells the model what kind of judgment to apply before it sees the giant blob. "You are a requirements auditor. Only check missing acceptance criteria. Return findings as JSON." That is easier to follow than a long prompt that says, somewhere in paragraph twelve, "also act like a requirements auditor."
+
+The reasoning is concrete: smaller models have less room to juggle instructions. When rules, examples, data, and desired output are mixed together, the model has to spread its attention across all of it. A system prompt anchors the behavior first, then lets the task data flow through it.
+
+This does not make a weak model brilliant. It makes the task narrower.
+
+## The real architecture: three cobblers
+
+![Multiple focused model sessions examining different slices of one problem before passing structured notes forward](https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/specialist-sessions.webp)
+
+The professional answer is not "write a better giant prompt." It is "stop asking one session to be every profession at once."
+
+Split the work.
+
+One session checks requirements. Another goes after edge cases. A third extracts facts. The next looks for contradictions. The last rewrites for tone. Each session gets its own system prompt and narrow task prompt. None of them needs to be Zhuge Liang. They just need to be decent at their assigned corner.
+
+Then a final synthesis session combines the results.
+
+This is where the proverb becomes architecture. Three smaller models with focused responsibilities can cover more surface area than one overloaded model trying to remember everything. The improvement does not come from pretending weak models are strong. It comes from reducing the number of things each model can forget.
+
+Parallelism helps when the subtasks are independent: security review, UX review, cost review, factual extraction. Chaining helps when one output becomes the input to the next: classify, extract, validate, summarize. In both cases, the important move is the same. Replace one broad judgment with several narrow judgments.
+
+## The hub-and-spoke version
+
+![A central orchestrator node routing structured context between specialized AI agents arranged around it](https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/hub-spoke.webp)
+
+There is another pattern I like: the hub-and-spoke model.
+
+One session acts as the orchestrator. It does not try to solve the whole problem directly. Instead, it decides which specialist should inspect which part. It passes only the relevant context, collects the replies, and asks follow-up questions when outputs conflict. Then it synthesizes the final answer.
+
+This is useful when the work is not a clean pipeline. Real tasks are messy. A review agent might find a missing requirement. That missing requirement might need to go back to a planning agent. A cost agent might disagree with the proposed architecture. The orchestrator keeps the state moving without forcing every specialist to understand the whole world.
+
+The trick is to keep the orchestrator honest. It should pass structured summaries, not vague vibes. It should preserve disagreements instead of smoothing them away. And when the spokes produce conflicting answers, the final synthesis should say so or escalate to a stronger model.
+
+Cheap models are useful here because they become sensors. Each one looks from a specific angle. The orchestrator does not need them to be perfect. It needs enough coverage that important misses become less likely.
+
+## The last knob: temperature
+
+![A precise temperature control dial balancing predictable pipeline work with creative exploration](https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/temperature-dial.webp)
+
+Temperature is not a cure for weak reasoning, but it is one of the simplest ways to make a pipeline less chaotic.
+
+For extraction, validation, classification, synthesis, and review, I want low temperature. Predictability matters more than novelty. If the same input produces a different schema or a different judgment every run, the workflow becomes hard to debug.
+
+For creative work, I raise it. Naming, brainstorming, metaphors, first-draft copy, visual ideas: those tasks benefit from variation. I do not want the model to return the safest average answer every time.
+
+The mistake is using one temperature everywhere. Architecture tasks need different modes. A specialist that checks compliance should be boring. A specialist that proposes blog titles can be loose. The orchestrator should usually be conservative.
+
+That is the lesson I keep learning: do not spend all your energy searching for one perfect model call. Design the work so imperfect calls can still be useful.
+
+Three cobblers do not magically become Zhuge Liang. But if each one knows exactly what to look at, and someone sensible combines the result, the system can get surprisingly close.
