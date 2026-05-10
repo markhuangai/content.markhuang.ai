@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: rootless-docker
+    runs-on: docker-runner
     timeout-minutes: 10
 
     steps:
