@@ -1,6 +1,6 @@
 # content.markhuang.ai
 
-Content repository for [markhuang.ai](https://markhuang.ai). On push to `main`, GitHub Actions compiles MDX articles with shiki syntax highlighting and uploads them to Cloudflare R2. The frontend fetches pre-highlighted content from R2 at ISR time — no backend content proxy, no runtime shiki. The backend Article AI feature reads raw source MDX from the public repo configured by `ARTICLE_AI_SOURCE_REPO` after validating the article against the published R2 manifest.
+Content repository for [markhuang.ai](https://markhuang.ai). On push to `main`, GitHub Actions compiles MDX articles with shiki syntax highlighting, syncs configured public GitHub wiki manuals, and uploads them to Cloudflare R2. The frontend fetches pre-highlighted content from R2 at ISR time — no backend content proxy, no runtime shiki. The backend Article AI feature reads raw source MDX from the public repo configured by `ARTICLE_AI_SOURCE_REPO` after validating the article against the published R2 manifest.
 
 ## Structure
 
@@ -16,14 +16,18 @@ content.markhuang.ai/
 ├── knowledge/                  # AI chat widget knowledge base (*.md)
 ├── projects/
 │   └── manifest.json          # Source of truth for project metadata
+├── manuals/
+│   └── manifest.json          # Source of truth for public GitHub wiki manuals
 ├── scripts/
 │   ├── compile.ts             # Shiki pre-highlighting + dist/ output
+│   ├── sync-manuals.ts        # GitHub wiki sync + manual manifest output
 │   └── convert-images.sh      # WebP image conversion
 ├── .github/workflows/
 │   └── publish.yml            # CI: compile → R2 upload → ISR revalidate
 └── dist/                      # Build output (gitignored)
     ├── manifest.json          # Flat array of published entries
-    └── articles/{slug}.mdx    # Pre-highlighted MDX
+    ├── articles/{slug}.mdx    # Pre-highlighted MDX
+    └── manuals/               # Runtime manual manifests, pages, and assets
 ```
 
 ## Blog Articles
@@ -58,6 +62,33 @@ Project metadata lives in `projects/manifest.json` and is uploaded to R2 as
 `projects/manifest.json`. The frontend fetches it at render time for the home
 page and `/projects`.
 
+## Manuals
+
+Manual metadata lives in `manuals/manifest.json`. Every listed manual is
+published and points to a public GitHub repository whose wiki is cloned from
+`https://github.com/{owner}/{repo}.wiki.git` during CI.
+
+```json
+{
+  "manuals": [
+    {
+      "id": "vcp",
+      "title": "VCP",
+      "description": "Vibe Coding Protocol manual.",
+      "repo": "Z-M-Huang/vcp",
+      "home": "Home",
+      "order": ["Home", "Quick Start"],
+      "tags": ["Claude Code", "Security"]
+    }
+  ]
+}
+```
+
+`npm run sync:manuals` writes `dist/manuals/manifest.json`, compiled MDX pages,
+and copied wiki assets. GitHub wiki special pages such as `_Sidebar.md` and
+`_Footer.md` are excluded. Configured wikis are required to clone successfully;
+CI fails rather than publishing an incomplete manual manifest.
+
 ## Knowledge Base
 
 Markdown files in `knowledge/` are used by the AI chat widget. The backend
@@ -75,7 +106,7 @@ Push to main → CI compiles → Upload to R2 → ISR revalidation → Cloudflar
 | Step           | What happens                                                                                                    |
 | -------------- | --------------------------------------------------------------------------------------------------------------- |
 | **Compile**    | `scripts/compile.ts` runs shiki on fenced code blocks (18 languages, dual themes: `github-light`/`github-dark`) |
-| **Upload**     | Compiled MDX, article manifest, project manifest, and knowledge files uploaded to R2 via S3-compatible API      |
+| **Upload**     | Compiled MDX, article manifest, manual output, project manifest, and knowledge files uploaded to R2 via S3-compatible API |
 | **Revalidate** | `POST /api/v1/hooks/revalidate` triggers Next.js ISR cache refresh                                              |
 | **Newsletter** | `POST /api/v1/hooks/content-published` creates newsletter drafts for new articles                               |
 
@@ -96,6 +127,8 @@ Push to main → CI compiles → Upload to R2 → ISR revalidation → Cloudflar
 npm install                              # install dependencies
 npm run compile                          # compile all published articles to dist/
 npm run compile:changed -- slug1 slug2   # compile specific articles only
+npm run sync:manuals                     # sync configured public GitHub wikis to dist/manuals/
+npm test                                 # run content pipeline tests
 ```
 
 ## Adding a New Article

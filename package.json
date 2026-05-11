@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "compile": "tsx scripts/compile.ts",
-    "compile:changed": "tsx scripts/compile.ts --changed"
+    "compile:changed": "tsx scripts/compile.ts --changed",
+    "sync:manuals": "tsx scripts/sync-manuals.ts",
+    "test": "node --import tsx --test scripts/__tests__/*.test.ts"
   },
   "devDependencies": {
     "shiki": "^3.4.2",

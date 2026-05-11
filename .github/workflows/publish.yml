@@ -16,12 +16,15 @@
 name: Publish Content
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "blog/**"
       - "knowledge/**"
       - "projects/**"
+      - "manuals/**"
+      - "scripts/sync-manuals.ts"
 
 concurrency:
   group: publish-content
@@ -123,6 +126,25 @@ jobs:
             echo "$CHANGED"
           fi
 
+      - name: Detect manual changes
+        id: manuals
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual workflow dispatch: syncing manuals"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only --diff-filter=ACMR HEAD~1 HEAD -- 'manuals/**' 'scripts/sync-manuals.ts')
+          if [ -z "$CHANGED" ]; then
+            echo "No manual changes detected"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Changed manual files:"
+            echo "$CHANGED"
+          fi
+
       - name: Compile articles
         if: steps.changes.outputs.has_changes == 'true'
         env:
@@ -134,6 +156,10 @@ jobs:
           else
             npm run compile
           fi
+
+      - name: Sync manuals
+        if: steps.manuals.outputs.has_changes == 'true'
+        run: npm run sync:manuals
 
       - name: Upload to R2
         if: steps.changes.outputs.has_changes == 'true'
@@ -185,8 +211,41 @@ jobs:
           npx wrangler r2 object put "${R2_BUCKET_NAME}/projects/manifest.json" \
             --file "projects/manifest.json" --content-type "application/json" --remote
 
+      - name: Upload manuals to R2
+        if: steps.manuals.outputs.has_changes == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          if [ -d "dist/manuals" ]; then
+            while IFS= read -r file; do
+              rel="${file#dist/manuals/}"
+              [ "$rel" = "manifest.json" ] && continue
+
+              case "$file" in
+                *.mdx) content_type="text/mdx" ;;
+                *.json) content_type="application/json" ;;
+                *.png) content_type="image/png" ;;
+                *.jpg|*.jpeg) content_type="image/jpeg" ;;
+                *.gif) content_type="image/gif" ;;
+                *.svg) content_type="image/svg+xml" ;;
+                *.webp) content_type="image/webp" ;;
+                *) content_type="application/octet-stream" ;;
+              esac
+
+              npx wrangler r2 object put "${R2_BUCKET_NAME}/manuals/${rel}" \
+                --file "$file" --content-type "$content_type" --remote
+            done < <(find dist/manuals -type f | sort)
+          fi
+
+          if [ -f "dist/manuals/manifest.json" ]; then
+            npx wrangler r2 object put "${R2_BUCKET_NAME}/manuals/manifest.json" \
+              --file "dist/manuals/manifest.json" --content-type "application/json" --remote
+          fi
+
       - name: Trigger ISR revalidation
-        if: steps.changes.outputs.has_changes == 'true' || steps.projects.outputs.has_changes == 'true'
+        if: steps.changes.outputs.has_changes == 'true' || steps.projects.outputs.has_changes == 'true' || steps.manuals.outputs.has_changes == 'true'
         env:
           HOOK_TOKEN: ${{ secrets.HOOK_BEARER_TOKEN }}
           SITE_URL: ${{ secrets.SITE_URL }}
@@ -203,7 +262,7 @@ jobs:
           fi
 
       - name: Purge Cloudflare CDN cache
-        if: steps.changes.outputs.has_changes == 'true' || steps.knowledge.outputs.has_changes == 'true' || steps.projects.outputs.has_changes == 'true'
+        if: steps.changes.outputs.has_changes == 'true' || steps.knowledge.outputs.has_changes == 'true' || steps.projects.outputs.has_changes == 'true' || steps.manuals.outputs.has_changes == 'true'
         env:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
