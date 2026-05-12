@@ -24,6 +24,7 @@ on:
       - "knowledge/**"
       - "projects/**"
       - "manuals/**"
+      - "scripts/compile.ts"
       - "scripts/sync-manuals.ts"
 
 concurrency:
@@ -57,7 +58,7 @@ jobs:
         id: changes
         run: |
           # Get changed MDX files and manifest
-          CHANGED=$(git diff --name-only --diff-filter=ACMR HEAD~1 HEAD -- 'blog/**/*.mdx' 'blog/manifest.json')
+          CHANGED=$(git diff --name-only --diff-filter=ACMR HEAD~1 HEAD -- 'blog/**/*.mdx' 'blog/manifest.json' 'scripts/compile.ts')
 
           if [ -z "$CHANGED" ]; then
             echo "No blog content changes detected"

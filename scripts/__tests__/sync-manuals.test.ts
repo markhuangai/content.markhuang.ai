@@ -43,7 +43,16 @@ test("syncManuals compiles public wiki pages, links, and assets", async () => {
       "![Logo](images/logo.png)",
       "",
       "```ts",
-      "console.log('manual');",
+      "console.log('manual'); \\",
+      "",
+      "const config = { enabled: true };",
+      "const glob = 'node_modules/**';",
+      "```",
+      "",
+      "```text",
+      "first",
+      "",
+      "second",
       "```",
       "",
     ].join("\n"),
@@ -108,6 +117,11 @@ test("syncManuals compiles public wiki pages, links, and assets", async () => {
   assert.match(home, /\[Quick\]\(\/manuals\/demo\/quick-start\)/);
   assert.match(home, /__MANUAL_ASSET_BASE__\/images\/logo\.png/);
   assert.match(home, /<pre data-language="typescript"/);
+  assert.match(home, /<span class="line">&#8203;<\/span>/);
+  assert.match(home, /&#92;/);
+  assert.match(home, /&#42;&#42;/);
+  assert.match(home, /&#123; enabled:/);
+  assert.match(home, /&#125;;/);
   assert.ok(
     existsSync(
       join(root, "dist", "manuals", "demo", "assets", "images", "logo.png"),

@@ -550,7 +550,7 @@ function highlightCodeBlocks(mdx: string, highlighter: Highlighter): string {
         defaultColor: false,
       });
 
-      let result = html.replace(
+      let result = escapeMdxJsxText(html).replace(
         /^<pre /,
         `<pre data-language="${effectiveLang}"${isPlayground ? ' data-playground="true"' : ""} `,
       );
@@ -571,6 +571,19 @@ function escapeAttr(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function escapeMdxJsxText(html: string): string {
+  return html
+    .replace(
+      /<span class="line"><span(?: [^>]*)?><\/span><\/span>/g,
+      '<span class="line">&#8203;</span>',
+    )
+    .replace(/<span class="line"><\/span>/g, '<span class="line">&#8203;</span>')
+    .replace(/\\/g, "&#92;")
+    .replace(/\*/g, "&#42;")
+    .replace(/{/g, "&#123;")
+    .replace(/}/g, "&#125;");
 }
 
 async function copyAsset(
