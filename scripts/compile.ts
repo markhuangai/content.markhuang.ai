@@ -12,9 +12,10 @@
  * The frontend (r2-content.ts) fetches these from R2 at ISR time.
  */
 
-import { readFile, writeFile, mkdir } from "fs/promises";
+import { access, readFile, writeFile, mkdir } from "fs/promises";
 import { join, resolve } from "path";
 import { createHighlighter, type BundledLanguage, type Highlighter } from "shiki";
+import { fileURLToPath } from "url";
 
 // Same languages as the old frontend rehypeShikiPlugin
 const LANGS: BundledLanguage[] = [
@@ -38,7 +39,7 @@ const LANGS: BundledLanguage[] = [
   "text",
 ];
 
-interface ManifestEntry {
+export interface ManifestEntry {
   slug: string;
   title: string;
   description: string;
@@ -53,7 +54,7 @@ interface ManifestEntry {
   excludeFromFeatured?: boolean;
 }
 
-interface ManifestFile {
+export interface ManifestFile {
   articles: ManifestEntry[];
 }
 
@@ -120,6 +121,40 @@ function escapeMdxJsxText(html: string): string {
     .replace(/}/g, "&#125;");
 }
 
+export function getChangedSlugsMissingFromManifest(
+  manifestFile: ManifestFile,
+  changedSlugs: Set<string> | null,
+): string[] {
+  if (!changedSlugs) {
+    return [];
+  }
+
+  const manifestSlugs = new Set(manifestFile.articles.map((article) => article.slug));
+  return [...changedSlugs].filter((slug) => !manifestSlugs.has(slug)).sort();
+}
+
+export async function findMissingPublishedArticleFiles(
+  blogDir: string,
+  published: ManifestEntry[],
+): Promise<string[]> {
+  const missing: string[] = [];
+
+  for (const article of published) {
+    const mdxPath = join(blogDir, article.category, `${article.slug}.mdx`);
+    try {
+      await access(mdxPath);
+    } catch (err) {
+      if (err instanceof Error && "code" in err && err.code === "ENOENT") {
+        missing.push(`${article.category}/${article.slug}.mdx`);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  return missing;
+}
+
 async function main() {
   const rootDir = resolve(import.meta.dirname, "..");
   const blogDir = join(rootDir, "blog");
@@ -135,6 +170,22 @@ async function main() {
     await readFile(join(blogDir, "manifest.json"), "utf-8"),
   );
   const published = manifestFile.articles.filter((a) => a.published);
+
+  const missingChangedSlugs = getChangedSlugsMissingFromManifest(manifestFile, changedSlugs);
+  if (missingChangedSlugs.length > 0) {
+    throw new Error(
+      `Changed article files are missing from blog/manifest.json: ${missingChangedSlugs.join(", ")}`,
+    );
+  }
+
+  const missingFiles = await findMissingPublishedArticleFiles(blogDir, published);
+  if (missingFiles.length > 0) {
+    throw new Error(
+      `Published manifest entries are missing article files:\n${missingFiles
+        .map((file) => `  - blog/${file}`)
+        .join("\n")}`,
+    );
+  }
 
   // Determine which articles to compile
   const toCompile = changedSlugs
@@ -195,4 +246,6 @@ async function main() {
   }
 }
 
-main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  main();
+}
