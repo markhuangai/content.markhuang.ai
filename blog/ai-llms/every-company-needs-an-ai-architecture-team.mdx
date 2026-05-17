@@ -1,0 +1,129 @@
+![An internal AI architecture team designing safe customized AI workflows across an organization](https://cdn.markhuang.ai/blog/every-company-needs-an-ai-architecture-team/hero.webp)
+
+After trying skills, agents, MCP tools, and SDK-based workflows, my view on AI adoption has changed.
+
+The important question is not whether AI can help a company. It can. The question is where AI should sit inside the business, how much authority it should have, and who owns the architecture when it starts touching real data, real workflows, and real customers.
+
+Most companies are still processing this. Some teams are experimenting with chat interfaces. Some are building internal tools. Some are buying specialized AI products. Some are waiting because they do not know how to adopt AI safely.
+
+I do not think there is one correct answer. The right path depends on the company's technical strength, data complexity, risk tolerance, and appetite for customization.
+
+But I do think every company needs someone responsible for AI architecture.
+
+## There are several adoption paths
+
+![Three AI adoption paths converging toward business value](https://cdn.markhuang.ai/blog/every-company-needs-an-ai-architecture-team/adoption-paths.webp)
+
+The adoption path depends heavily on what kind of organization you are.
+
+| Company situation | Practical path | Strength | Weak point |
+|-------------------|----------------|----------|------------|
+| Strong technical team | Build custom AI solutions with SDKs | Highest control and customization | Requires engineering ownership |
+| Business-oriented teams | Use skills, chat agents, or tools like M365 Copilot | Fast adoption and low barrier | Limited process guarantees |
+| Limited technical resources | Buy or outsource specialized AI services | Fastest access to packaged expertise | Risk of poor fit and vendor lock-in |
+
+For a company with a strong engineering team, I would start directly with SDK-based solutions. Not because SDKs are trendy, but because code gives you control. You can decide what data enters the model, what tools it can call, how output is validated, where logs go, and when a human must approve the next action.
+
+For a more business-oriented organization, skills and chat-based agents may be the better starting point. A team can encode repeatable workflows, document practices, and automate common tasks without building a full custom platform. This can work well for drafting, review, summarization, internal knowledge access, and office workflows.
+
+For companies with very limited technical resources, outsourcing can make sense. A specialized service provider may already understand the domain and offer a faster path to value than hiring a team from scratch.
+
+None of these paths is automatically wrong.
+
+The problem is choosing one without understanding the tradeoff.
+
+## The customization problem
+
+![Company-specific data and workflows struggling to fit into a rigid external AI service box](https://cdn.markhuang.ai/blog/every-company-needs-an-ai-architecture-team/customization-trap.webp)
+
+My biggest concern with packaged AI services is customization.
+
+Every company has its own data shape, permissions model, workflows, legacy systems, reporting habits, compliance rules, and internal language. Two companies may both say they need "AI customer support," but the actual system they need can be completely different.
+
+One company needs deep CRM integration. Another needs multilingual escalation. Another needs legal review before any customer-facing message. Another needs AI to summarize support issues but never send replies. Another has messy historical data that cannot be trusted without cleanup.
+
+A generic service can help, but it often asks the company to adapt to the service's model. That can mean complicated setup, brittle connectors, limited workflow changes, or a future migration that becomes painful because too much business process is now shaped around someone else's product.
+
+This is where AI adoption becomes more than tool selection.
+
+It becomes architecture.
+
+Someone has to answer questions like:
+
+- Which use cases are safe for AI automation?
+- Which data can the model see?
+- Which actions require human approval?
+- Which workflows need deterministic code instead of agent reasoning?
+- How do we measure whether the system is actually helping?
+- How do we change the system when the business changes?
+
+If nobody owns those questions, AI adoption becomes scattered experiments. Some will help. Some will create risk. Most will be hard to maintain.
+
+## The team I think companies need
+
+![A central AI architecture studio connected to embedded AI developers across product teams](https://cdn.markhuang.ai/blog/every-company-needs-an-ai-architecture-team/team-model.webp)
+
+The ideal state in my mind is not every company building a giant AI lab.
+
+It is simpler than that: each organization should have an AI architecture function.
+
+For smaller companies, that might be one AI architect and one or two AI developers. For larger companies with strong engineering departments, I think one AI developer embedded per team could become normal, supported by a central AI architecture group.
+
+The AI architect owns the shape of adoption:
+
+- Where AI is allowed to make decisions
+- Where deterministic systems must stay in control
+- How data access is scoped
+- What patterns teams should reuse
+- What evaluation and audit standards are required
+- How vendor tools fit into the long-term architecture
+
+The AI developers build the actual systems:
+
+- SDK-based workflows
+- Internal copilots
+- MCP tools and connectors
+- Data retrieval pipelines
+- Evaluation harnesses
+- Human approval flows
+- Team-specific automations
+
+This is not just prompt engineering. Prompting is part of it, but the valuable skill is translating messy business work into systems that are useful, safe, maintainable, and adaptable.
+
+## The future role is closer to solution architecture
+
+I see a bright future for developers who can work at this intersection.
+
+Companies do not only need people who can call an LLM API. That part is getting easier. They need people who can look at a business process and decide what should be automated, what should stay human, what should be deterministic, what can be probabilistic, and how the pieces should connect.
+
+That is why I think AI solution architects will matter.
+
+The job is not to replace every workflow with an agent. The job is to design the boundary between AI and the business. Sometimes that means SDKs. Sometimes it means a chat interface. Sometimes it means buying a vendor product. Sometimes it means telling the company not to automate a decision yet because the data is not ready or the risk is too high.
+
+The best AI adoption will not come from the company that uses the most AI. It will come from the company that knows where AI belongs.
+
+## My current view
+
+If I were advising a company today, I would not start with "which AI tool should we buy?"
+
+I would start with a map:
+
+```text
+Business workflow
+  -> data involved
+  -> decisions being made
+  -> risk of wrong output
+  -> required customization
+  -> current technical capacity
+  -> best AI adoption path
+```
+
+That map tells you whether you need a vendor tool, a skill-based workflow, a chat agent, a custom SDK application, or no AI at all.
+
+AI adoption is not installation. It is integration.
+
+The companies that understand this will build durable advantages. The companies that treat AI as a plug-in may get short-term productivity gains, but they will struggle when the first version does not fit their real workflows.
+
+Every company is going to need AI capability. Not every company needs the same AI stack.
+
+That is exactly why every company needs AI architecture.

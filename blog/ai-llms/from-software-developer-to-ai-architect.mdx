@@ -1,0 +1,115 @@
+![A developer walking a luminous path from prompt cards through tool connectors to deterministic SDK-controlled systems](https://cdn.markhuang.ai/blog/from-software-developer-to-ai-architect/hero.webp)
+
+My AI learning journey did not start with a grand strategy. It started with Claude Code and skills.
+
+At first, skills felt like the missing piece. I could take a way of working, write it down once, and make the AI reuse it. A skill could teach the model how I wanted a review done, how I wanted a plan written, how I wanted a workflow enforced. It felt less like prompting and more like creating reusable behavior.
+
+That was the moment I became interested in being a skill creator. Not because the format was complicated. The opposite. It was powerful because it was simple. A skill is basically a packaged way to say: when this kind of task appears, behave this way.
+
+For a while, that felt like enough.
+
+## The skill loop problem
+
+![Prompt cards recursively looping around an AI core](https://cdn.markhuang.ai/blog/from-software-developer-to-ai-architect/skills-loop.webp)
+
+The more I used skills, the more I noticed the weak point.
+
+A skill is still a prompt.
+
+It is a prompt trying to regulate another prompt, which is trying to regulate the model's output. In other words, prompt engineering on top of prompt engineering. It can improve the odds. It can make the model more likely to follow a process. It can give the model better context.
+
+But it does not enforce the outcome.
+
+That difference matters. "The model usually follows this skill" is useful. It is not the same as "the system guarantees this process happened." If the model misses the trigger, misreads the skill, forgets the boundary, or drifts because the context is already too polluted, the skill does not have much recourse. It can only ask harder next time.
+
+I started calling this the prompt loop problem. You are using words to regulate a system that is also operating through words. Everyone who has used LLMs long enough knows what that means: it works until it does not.
+
+## Trying to turn skills into a state machine
+
+![A hybrid AI state machine made of prompt cards, script gears, and uncertain transitions](https://cdn.markhuang.ai/blog/from-software-developer-to-ai-architect/state-machine-experiment.webp)
+
+My next thought was: if prompts are not enough, can I combine them with code?
+
+I started experimenting with state-machine-like workflows using skills plus TypeScript scripts. The idea was simple:
+
+```text
+Skill detects the task
+  -> script performs one concrete action
+  -> script returns structured state
+  -> skill decides the next step
+  -> next script runs
+```
+
+This was close to what I had imagined in my earlier [agent as feature](/blog/agent-as-feature-what-happens-when-ai-replaces-your-backend-logic) post. Let the AI reason about the task, but give it concrete actions it can trigger. The skill contains the process. The scripts handle the mechanical work. The response from one action decides where the process goes next.
+
+And to be fair, it worked from the beginning.
+
+That is the frustrating part. A lot of these ideas do work. They work enough to be exciting. They work enough that you can build demos, real workflows, even useful tools.
+
+But "works" and "guaranteed" are not the same thing.
+
+The weak point was still the same: the model had to read the skill correctly, choose the right script, pass the right state, and continue the process without drifting. Context rot still mattered. If the conversation got noisy, or the model built the wrong mental map of the workflow, the state machine became less like a machine and more like a suggestion.
+
+I had added code, but the control plane still lived inside the model's interpretation.
+
+## Replacing scripts with MCP tools
+
+![A central AI core connected to clean tool sockets and guarded system modules](https://cdn.markhuang.ai/blog/from-software-developer-to-ai-architect/mcp-tools.webp)
+
+After that, I started replacing TypeScript scripts with MCP tools.
+
+This felt more natural. A tool has a name, a description, an input schema, and a clear output shape. It is closer to how modern AI systems want to interact with external capabilities. Instead of asking the model to remember that some script exists somewhere, the tool becomes part of the model's available interface.
+
+That is an improvement.
+
+The tool boundary is clearer. The model sees the capability more directly. The inputs can be structured. The outputs can be validated. Compared with ad hoc scripts hidden behind skills, MCP feels like a more native AI pipeline primitive.
+
+But it did not fully solve the problem.
+
+The model still has to choose the right tool. It still has to call it at the right time. It still has to interpret the result correctly and decide what to do next. Tool calling gives you a better interface, but it does not magically turn model reasoning into deterministic execution.
+
+The reliability improved, but not enough to change my conclusion.
+
+## Where I landed
+
+![A deterministic workflow rail containing small bounded AI modules with validation gates](https://cdn.markhuang.ai/blog/from-software-developer-to-ai-architect/sdk-scaffolding.webp)
+
+After enough attempts at "agent as feature," I have to acknowledge something I did not want to admit at first.
+
+Putting the majority of trust into the LLM is too aggressive for many systems right now.
+
+Maybe that changes in the future. I expect models to get better. I expect tool calling to get stronger. I expect agent frameworks to mature. But from the current point in time, with current model behavior, I do not want the LLM to be the control plane for important workflows.
+
+My current preference is custom solutions built with SDKs.
+
+That does not mean "do not use AI." It means the process belongs in code. The application decides what happens each turn. The SDK call is one bounded step inside that process. You can validate the input, constrain the output, run evals, log the result, retry safely, and decide the next action from code instead of hoping the model continues the workflow correctly.
+
+The shape I trust now looks more like this:
+
+```text
+Code owns state
+Code chooses the next step
+Code validates model output
+Code decides whether to continue, retry, or stop
+LLM handles the fuzzy part inside a bounded box
+```
+
+That is the lesson I paid for with all these experiments.
+
+Skills are useful. MCP tools are useful. Agents are useful. But prompts are not enforcement, and tool descriptions are not governance. If you need the process to happen in a specific way, put the process in code.
+
+## What I would tell myself earlier
+
+I still like skills. I still think they are one of the easiest ways to help people use AI better. For individuals and business users, skills can encode repeatable practices and reduce the amount of prompt knowledge someone needs to carry in their head.
+
+But I would not confuse a skill with a system.
+
+A skill is guidance. A tool is an interface. An agent is a reasoning unit. A workflow needs a control plane.
+
+That control plane can be a workflow engine, an application backend, or custom SDK orchestration. What matters is that the deterministic parts stay deterministic, and the model is used where its uncertainty is an asset instead of a liability.
+
+I started this journey impressed by how much a prompt could shape AI behavior. I am still impressed.
+
+I am also more careful now.
+
+The future is not "replace everything with agents." The future is learning where agents belong, where code belongs, and how to make both work together without pretending they are the same thing.

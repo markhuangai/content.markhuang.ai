@@ -179,7 +179,7 @@
       "published": true,
       "image": null,
       "readTime": "10 min read",
-      "featured": true,
+      "featured": false,
       "excludeFromFeatured": false
     },
     {
@@ -207,7 +207,7 @@
       "published": true,
       "image": "https://cdn.markhuang.ai/blog/automation-without-intention-is-just-faster-chaos/hero.webp",
       "readTime": "10 min read",
-      "featured": true,
+      "featured": false,
       "excludeFromFeatured": false
     },
     {
@@ -264,6 +264,34 @@
       "image": "https://cdn.markhuang.ai/blog/three-cobblers-one-zhuge-liang-ai-architecture/hero.webp",
       "readTime": "5 min read",
       "featured": false,
+      "excludeFromFeatured": false
+    },
+    {
+      "slug": "from-software-developer-to-ai-architect",
+      "title": "From Software Developer to AI Architect: What Changed in One Year",
+      "description": "A personal journey from Claude Code skills to TypeScript state machines, MCP tools, and finally SDK-based AI workflows. Skills help, tools help, but prompts are not enforcement and LLMs should not own the control plane.",
+      "date": "2026-05-17",
+      "category": "ai-llms",
+      "categoryLabel": "AI & LLMs",
+      "tags": ["claude-code", "ai-skills", "mcp", "ai-agents", "sdk", "experience"],
+      "published": true,
+      "image": "https://cdn.markhuang.ai/blog/from-software-developer-to-ai-architect/hero.webp",
+      "readTime": "5 min read",
+      "featured": true,
+      "excludeFromFeatured": false
+    },
+    {
+      "slug": "my-company-doesnt-need-ai-think-again",
+      "title": "\"My Company Doesn't Need AI.\" Think Again.",
+      "description": "AI adoption is not just tool selection. Even companies that think they do not need AI need to understand where AI fits, what should stay deterministic, and who owns customization, safety, and long-term control.",
+      "date": "2026-05-17",
+      "category": "ai-llms",
+      "categoryLabel": "AI & LLMs",
+      "tags": ["ai-strategy", "ai-adoption", "ai-architecture", "ai-developers", "enterprise-ai"],
+      "published": true,
+      "image": "https://cdn.markhuang.ai/blog/my-company-doesnt-need-ai-think-again/hero.webp",
+      "readTime": "5 min read",
+      "featured": true,
       "excludeFromFeatured": false
     }
   ]
