@@ -13,7 +13,6 @@ content.markhuang.ai/
 │   ├── software-engineering/   # Software Engineering category
 │   └── tutorials/              # Tutorials category
 │       └── *.mdx               # Article content files
-├── knowledge/                  # AI chat widget knowledge base (*.md)
 ├── case-studies/
 │   ├── manifest.json          # Source of truth for AI adoption case studies
 │   └── {slug}.mdx             # Anonymized case-study content files
@@ -142,11 +141,6 @@ compiled runtime manifest still includes a flat `pages` list for routing and
 sitemaps. Configured wikis are required to clone successfully; CI fails rather
 than publishing an incomplete manual manifest.
 
-## Knowledge Base
-
-Markdown files in `knowledge/` are used by the AI chat widget. The backend
-fetches `knowledge/manifest.json` and `knowledge/*.md` from R2.
-
 ## Content Pipeline
 
 ```
@@ -159,7 +153,7 @@ Push to main → CI compiles → Upload to R2 → ISR revalidation → Cloudflar
 | Step           | What happens                                                                                                              |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | **Compile**    | `scripts/compile.ts` and `scripts/compile-case-studies.ts` run shiki on fenced code blocks (18 languages, dual themes: `github-light`/`github-dark`) |
-| **Upload**     | Compiled MDX, article manifest, case-study output, manual output, project manifest, and knowledge files uploaded to R2 via S3-compatible API |
+| **Upload**     | Compiled MDX, article manifest, case-study output, manual output, and project manifest uploaded to R2 via S3-compatible API |
 | **Revalidate** | `POST /api/v1/hooks/revalidate` triggers Next.js ISR cache refresh                                                        |
 | **Newsletter** | `POST /api/v1/hooks/content-published` creates newsletter drafts for new articles                                         |
 

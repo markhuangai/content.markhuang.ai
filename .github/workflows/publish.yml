@@ -1,10 +1,10 @@
 # Compile MDX articles (shiki pre-highlighting), upload content to R2, and trigger revalidation.
 #
 # Runs on every push to main. Compiles only changed articles for efficiency,
-# but always uploads the full article manifest. Knowledge and projects are uploaded
-# directly from source manifests/files. Case studies are compiled separately to
-# their own R2 prefix. After R2 upload, triggers revalidation and notifies the
-# backend of newly added articles for auto-newsletter.
+# but always uploads the full article manifest. Projects are uploaded directly
+# from source manifests/files. Case studies are compiled separately to their
+# own R2 prefix. After R2 upload, triggers revalidation and notifies the backend
+# of newly added articles for auto-newsletter.
 #
 # Required secrets:
 #   CLOUDFLARE_ACCOUNT_ID — Cloudflare account ID
@@ -23,7 +23,6 @@ on:
     paths:
       - "blog/**"
       - "case-studies/**"
-      - "knowledge/**"
       - "projects/**"
       - "manuals/**"
       - "scripts/compile.ts"
@@ -103,19 +102,6 @@ jobs:
           echo "$CHANGED"
           echo "Slugs to compile: $SLUGS"
           echo "Newly added slugs: $ADDED_SLUGS"
-
-      - name: Detect knowledge changes
-        id: knowledge
-        run: |
-          CHANGED=$(git diff --name-only --diff-filter=ACMR HEAD~1 HEAD -- 'knowledge/**')
-          if [ -z "$CHANGED" ]; then
-            echo "No knowledge changes detected"
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-            echo "Changed knowledge files:"
-            echo "$CHANGED"
-          fi
 
       - name: Detect case study changes
         id: case_studies
@@ -231,24 +217,6 @@ jobs:
               --file "dist/manifest.json" --content-type "application/json" --remote
           fi
 
-      - name: Upload knowledge to R2
-        if: steps.knowledge.outputs.has_changes == 'true'
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-        run: |
-          if [ -f "knowledge/manifest.json" ]; then
-            npx wrangler r2 object put "${R2_BUCKET_NAME}/knowledge/manifest.json" \
-              --file "knowledge/manifest.json" --content-type "application/json" --remote
-          fi
-
-          for file in knowledge/*.md; do
-            [ -f "$file" ] || continue
-            npx wrangler r2 object put "${R2_BUCKET_NAME}/knowledge/$(basename "$file")" \
-              --file "$file" --content-type "text/markdown" --remote
-          done
-
       - name: Upload projects to R2
         if: steps.projects.outputs.has_changes == 'true'
         env:
@@ -330,7 +298,7 @@ jobs:
           fi
 
       - name: Purge Cloudflare CDN cache
-        if: steps.changes.outputs.has_changes == 'true' || steps.knowledge.outputs.has_changes == 'true' || steps.projects.outputs.has_changes == 'true' || steps.manuals.outputs.has_changes == 'true'
+        if: steps.changes.outputs.has_changes == 'true' || steps.projects.outputs.has_changes == 'true' || steps.manuals.outputs.has_changes == 'true' || steps.case_studies.outputs.has_changes == 'true'
         env:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -352,30 +320,24 @@ jobs:
           fi
 
       - name: Notify backend of published changes
-        if: steps.changes.outputs.has_changes == 'true' || steps.knowledge.outputs.has_changes == 'true'
+        if: steps.changes.outputs.has_changes == 'true'
         env:
           HOOK_TOKEN: ${{ secrets.HOOK_BEARER_TOKEN }}
           SITE_URL: ${{ secrets.SITE_URL }}
           ADDED_SLUGS: ${{ steps.changes.outputs.added_slugs }}
-          KNOWLEDGE_CHANGED: ${{ steps.knowledge.outputs.has_changes }}
         run: |
-          # Build JSON payload with both article slugs and knowledge flag
+          # Build JSON payload with newly added article slugs.
           if [ -n "$ADDED_SLUGS" ]; then
             SLUGS_JSON=$(echo "$ADDED_SLUGS" | tr ' ' '\n' | grep -v '^$' | jq -R . | jq -s .)
           else
             SLUGS_JSON="[]"
           fi
 
-          KNOWLEDGE_BOOL="false"
-          if [ "$KNOWLEDGE_CHANGED" = "true" ]; then
-            KNOWLEDGE_BOOL="true"
-          fi
-
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST "${SITE_URL}/api/v1/hooks/content-published" \
             -H "Authorization: Bearer ${HOOK_TOKEN}" \
             -H "Content-Type: application/json" \
-            -d "{\"added_slugs\": ${SLUGS_JSON}, \"knowledge_changed\": ${KNOWLEDGE_BOOL}}" \
+            -d "{\"added_slugs\": ${SLUGS_JSON}}" \
             --max-time 30)
 
           echo "Content-published hook response: ${STATUS}"
